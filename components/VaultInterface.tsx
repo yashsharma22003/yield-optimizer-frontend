@@ -8,16 +8,22 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { 
-  Shield, 
-  TrendingUp, 
-  ArrowUpRight, 
+import {
+  Shield,
+  TrendingUp,
+  ArrowUpRight,
   ArrowDownRight,
   DollarSign,
   Activity,
   AlertTriangle,
   Bot
 } from 'lucide-react';
+
+/// web3 imports 
+
+import { depositHigh, withdrawHigh } from '../contractContext/highRiskContext';
+import { depositLow, withdrawLow } from '../contractContext/lowRiskContext';
+import { approveUSDC } from '../contractContext/usdcContext';
 
 export function VaultInterface() {
   const [depositAmount, setDepositAmount] = useState('');
@@ -43,6 +49,45 @@ export function VaultInterface() {
       color: 'red'
     }
   };
+
+  const vaultAddresses = {
+    lowRisk: '0xD30164B46786C6c878Aa97fF43264fF6D597FBAc',
+    highRisk: '0xb6FF46c3c86fAfd1827Fb6b027591cCBdb54d6ec'
+  }
+
+  console.log("risk level", riskLevel);
+
+ async function handleDeposit() {
+    try {
+      if (activeAction === 'deposit') {
+        if (riskLevel === 'low') {
+         await approveUSDC(vaultAddresses.lowRisk, depositAmount);
+         await depositLow(depositAmount);
+        } else {
+         await approveUSDC(vaultAddresses.highRisk, depositAmount);
+         await depositHigh(depositAmount);
+        }
+      }
+    } catch (error) {
+      console.error("Deposit error:", error);
+      alert("An error occurred while processing your deposit. Please try again.");
+    }
+  }
+
+  function handleWithdraw() {
+    try {
+      if (activeAction === 'withdraw') {
+        if (riskLevel === 'low') {
+          withdrawLow(withdrawAmount);
+        } else {
+          withdrawHigh(withdrawAmount);
+        }
+      }
+    } catch (error) {
+      console.error("Withdraw error:", error);
+      alert("An error occurred while processing your withdrawal. Please try again.");
+    }
+  }
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
@@ -97,7 +142,7 @@ export function VaultInterface() {
                       </div>
                       <Badge className="bg-green-500/20 text-green-300">8.2% APY</Badge>
                     </div>
-                    
+
                     <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/10 hover:border-red-500/30 transition-colors">
                       <RadioGroupItem value="high" id="high" />
                       <div className="flex-1">
@@ -110,7 +155,7 @@ export function VaultInterface() {
                 </RadioGroup>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
+              <Button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800" onClick={() => {handleDeposit()}}>
                 Deposit USDC
               </Button>
             </TabsContent>
@@ -131,6 +176,28 @@ export function VaultInterface() {
                   <span>Available: 2,500 USDC</span>
                   <button className="text-purple-400 hover:text-purple-300">Max</button>
                 </div>
+                  <Label className="text-white mb-4 block mt-5">Risk Preference</Label>
+                 <RadioGroup value={riskLevel} onValueChange={setRiskLevel}>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/10 hover:border-green-500/30 transition-colors">
+                      <RadioGroupItem value="low" id="low" />
+                      <div className="flex-1">
+                        <Label htmlFor="low" className="text-white font-medium">Low Risk</Label>
+                        <p className="text-sm text-slate-400">Conservative Aave strategy</p>
+                      </div>
+                      <Badge className="bg-green-500/20 text-green-300">8.2% APY</Badge>
+                    </div>
+
+                    <div className="flex items-center space-x-3 p-3 rounded-lg border border-white/10 hover:border-red-500/30 transition-colors">
+                      <RadioGroupItem value="high" id="high" />
+                      <div className="flex-1">
+                        <Label htmlFor="high" className="text-white font-medium">High Risk</Label>
+                        <p className="text-sm text-slate-400">Aggressive Morpho strategy</p>
+                      </div>
+                      <Badge className="bg-red-500/20 text-red-300">18.7% APY</Badge>
+                    </div>
+                  </div>
+                </RadioGroup>
               </div>
 
               <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
@@ -143,7 +210,8 @@ export function VaultInterface() {
                 </p>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800">
+              <Button className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+                onClick={() => {handleWithdraw()}}>
                 Withdraw USDC
               </Button>
             </TabsContent>

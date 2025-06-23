@@ -7,13 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
-import { 
-  Wallet, 
-  TrendingUp, 
-  Shield, 
-  Zap, 
+import {
+  Wallet,
+  TrendingUp,
+  Shield,
+  Zap,
   BarChart3,
   ArrowUpRight,
+  ArrowLeft,
   DollarSign,
   Activity,
   Bot,
@@ -27,17 +28,20 @@ import { StrategyOverview } from '@/components/StrategyOverview';
 
 /// web 3 imports
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-
+import { useAccount } from 'wagmi';
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false);
+
   const [activeTab, setActiveTab] = useState('overview');
+  const [dashActiveTab, setDashActiveTab] = useState(false);
+  const { address, isConnected } = useAccount();
 
-  const connectWallet = () => {
-    setIsConnected(true);
-  };
+  function dashboard(param: boolean) {
+    setDashActiveTab(param);
+  }
 
-  if (!isConnected) {
+
+  if (!dashActiveTab) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
@@ -49,67 +53,67 @@ export default function Home() {
               </div>
               <span className="text-xl font-bold text-white">AI Yield Vaults</span>
             </div>
-           <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        authenticationStatus,
-        mounted,
-      }) => {
-        const ready = mounted && authenticationStatus !== 'loading';
-        const connected =
-          ready &&
-          account &&
-          chain &&
-          (!authenticationStatus || authenticationStatus === 'authenticated');
+            <ConnectButton.Custom>
+              {({
+                account,
+                chain,
+                openAccountModal,
+                openChainModal,
+                openConnectModal,
+                authenticationStatus,
+                mounted,
+              }) => {
+                const ready = mounted && authenticationStatus !== 'loading';
+                const connected =
+                  ready &&
+                  account &&
+                  chain &&
+                  (!authenticationStatus || authenticationStatus === 'authenticated');
 
-        return (
-          <div
-            {...(!ready && {
-              'aria-hidden': true,
-              style: { opacity: 0, pointerEvents: 'none', userSelect: 'none' },
-            })}
-          >
-            {!connected ? (
-              <Button 
-                onClick={openConnectModal} 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              >
-                <Wallet className="w-4 h-4 mr-2" />
-                Connect Wallet
-              </Button>
-            ) : chain.unsupported ? (
-              <Button 
-                onClick={openChainModal} 
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Wrong network
-              </Button>
-            ) : (
-              <div className="flex gap-2">
-                <Button onClick={openChainModal} variant="outline">
-                  {chain.hasIcon && chain.iconUrl && (
-                    <img 
-                      src={chain.iconUrl} 
-                      alt={chain.name ?? 'Chain icon'} 
-                      className="w-4 h-4 rounded-full mr-2"
-                    />
-                  )}
-                  {chain.name}
-                </Button>
-                <Button onClick={openAccountModal} variant="outline">
-                  {account.displayName}
-                  {account.displayBalance ? ` (${account.displayBalance})` : ''}
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-      }}
-    </ConnectButton.Custom>
+                return (
+                  <div
+                    {...(!ready && {
+                      'aria-hidden': true,
+                      style: { opacity: 0, pointerEvents: 'none', userSelect: 'none' },
+                    })}
+                  >
+                    {!connected ? (
+                      <Button
+                        onClick={openConnectModal}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      >
+                        <Wallet className="w-4 h-4 mr-2" />
+                        Connect Wallet
+                      </Button>
+                    ) : chain.unsupported ? (
+                      <Button
+                        onClick={openChainModal}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Wrong network
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button onClick={openChainModal} variant="outline">
+                          {chain.hasIcon && chain.iconUrl && (
+                            <img
+                              src={chain.iconUrl}
+                              alt={chain.name ?? 'Chain icon'}
+                              className="w-4 h-4 rounded-full mr-2"
+                            />
+                          )}
+                          {chain.name}
+                        </Button>
+                        <Button onClick={openAccountModal} variant="outline">
+                          {account.displayName}
+                          {account.displayBalance ? ` (${account.displayBalance})` : ''}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
+            </ConnectButton.Custom>
           </div>
         </header>
 
@@ -125,9 +129,9 @@ export default function Home() {
             <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
               Maximize your DeFi yields with intelligent strategy allocation powered by AI agents and Chainlink automation
             </p>
-            <Button 
-              onClick={connectWallet}
-              size="lg" 
+            <Button
+              onClick={() => { dashboard(true) }}
+              size="lg"
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-8 py-4"
             >
               Get Started
@@ -213,18 +217,80 @@ export default function Home() {
             </div>
             <span className="text-xl font-bold text-white">AI Yield Vaults</span>
           </div>
-          <div className="flex items-center space-x-4">
-            <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
-              <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-              Connected
-            </Badge>
-            <div className="text-white">0x1234...5678</div>
-          </div>
+          <ConnectButton.Custom>
+            {({
+              account,
+              chain,
+              openAccountModal,
+              openChainModal,
+              openConnectModal,
+              authenticationStatus,
+              mounted,
+            }) => {
+              const ready = mounted && authenticationStatus !== 'loading';
+              const connected =
+                ready &&
+                account &&
+                chain &&
+                (!authenticationStatus || authenticationStatus === 'authenticated');
+
+              return (
+                <div
+                  {...(!ready && {
+                    'aria-hidden': true,
+                    style: { opacity: 0, pointerEvents: 'none', userSelect: 'none' },
+                  })}
+                >
+                  {!connected ? (
+                    <Button
+                      onClick={openConnectModal}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                    >
+                      <Wallet className="w-4 h-4 mr-2" />
+                      Connect Wallet
+                    </Button>
+                  ) : chain.unsupported ? (
+                    <Button
+                      onClick={openChainModal}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Wrong network
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button onClick={openChainModal} variant="outline">
+                        {chain.hasIcon && chain.iconUrl && (
+                          <img
+                            src={chain.iconUrl}
+                            alt={chain.name ?? 'Chain icon'}
+                            className="w-4 h-4 rounded-full mr-2"
+                          />
+                        )}
+                        {chain.name}
+                      </Button>
+                      <Button onClick={openAccountModal} variant="outline">
+                        {account.displayName}
+                        {account.displayBalance ? ` (${account.displayBalance})` : ''}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
+          </ConnectButton.Custom>
         </div>
       </header>
-
+      <Button
+        onClick={() => { dashboard(false) }}
+        size="lg"
+        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-4 py-2 ml-4 mt-4"
+      >
+        Close
+        <ArrowLeft className="w-5 h-5 ml-2" />
+      </Button>
       {/* Navigation */}
       <div className="container mx-auto px-4 py-6">
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-white/5 backdrop-blur-sm">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600">
@@ -326,7 +392,7 @@ export default function Home() {
                       Current allocation is performing well. Consider increasing position.
                     </p>
                   </div>
-                  
+
                   <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <div className="flex items-center mb-2">
                       <Clock className="w-4 h-4 text-blue-400 mr-2" />
