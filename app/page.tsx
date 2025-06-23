@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Analytics } from "@/components/Analytics";
 
 import { 
   Wallet, 
@@ -19,11 +20,12 @@ import {
   Bot,
   PieChart,
   Clock,
-  CheckCircle
+  CheckCircle,
+  LineChart
 } from 'lucide-react';
-import { VaultInterface } from '@/components/VaultInterface';
 import { PortfolioDashboard } from '@/components/PortfolioDashboard';
 import { StrategyOverview } from '@/components/StrategyOverview';
+import { VaultInterface } from '@/components/VaultInterface';
 
 /// web 3 imports
 import { ConnectButton } from '@rainbow-me/rainbowkit';
@@ -226,7 +228,7 @@ export default function Home() {
       {/* Navigation */}
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-white/5 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-5 bg-white/5 backdrop-blur-sm">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600">
               <BarChart3 className="w-4 h-4 mr-2" />
               Overview
@@ -242,6 +244,10 @@ export default function Home() {
             <TabsTrigger value="portfolio" className="data-[state=active]:bg-purple-600">
               <PieChart className="w-4 h-4 mr-2" />
               Portfolio
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-purple-600">
+              <LineChart className="w-4 h-4 mr-2" />
+              Analytics
             </TabsTrigger>
           </TabsList>
 
@@ -351,6 +357,10 @@ export default function Home() {
 
           <TabsContent value="portfolio" className="mt-8">
             <PortfolioDashboard />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-8">
+            <Analytics />
           </TabsContent>
         </Tabs>
       </div>
