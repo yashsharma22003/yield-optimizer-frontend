@@ -24,43 +24,11 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'rec
 
 // Chainlink price fetcher (fetches real API data)
 async function fetchChainlinkPrices() {
-  // Fetch prices from Chainlink Data Feeds HTTP API
-  // Docs: https://data.chain.link/docs/api/
   try {
-    const endpoints = [
-      {
-        name: 'ETH',
-        url: 'https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd',
-      },
-      {
-        name: 'BTC',
-        url: 'https://data.chain.link/ethereum/mainnet/crypto-usd/btc-usd',
-      },
-      {
-        name: 'USDC',
-        url: 'https://data.chain.link/ethereum/mainnet/crypto-usd/usdc-usd',
-      },
-      {
-        name: 'USDT',
-        url: 'https://data.chain.link/ethereum/mainnet/crypto-usd/usdt-usd',
-      },
-    ];
-    const results = await Promise.all(
-      endpoints.map(async (ep) => {
-        const res = await fetch(ep.url);
-        if (!res.ok) throw new Error('Failed to fetch ' + ep.name);
-        const data = await res.json();
-        const price = parseFloat(data.price);
-        return {
-          name: ep.name,
-          price,
-          change24h: 0, // Not available from Chainlink HTTP API
-          volume24h: 'N/A', // Not available from Chainlink HTTP API
-          marketCap: 'N/A', // Not available from Chainlink HTTP API
-        };
-      })
-    );
-    return results;
+    const res = await fetch('/api/chainlink-prices');
+    if (!res.ok) throw new Error('Failed to fetch from backend API');
+    const data = await res.json();
+    return data.tokens || [];
   } catch (e) {
     return [];
   }
@@ -84,14 +52,14 @@ export function Analytics() {
   const [marketData, setMarketData] = useState({
     tokens: [] as Token[], // Will be filled by Chainlink fetch
     priceHistory: [
-      { date: '2025-06-16', ETH: 3100, BTC: 43000 },
-      { date: '2025-06-17', ETH: 3150, BTC: 42800 },
-      { date: '2025-06-18', ETH: 3200, BTC: 42600 },
-      { date: '2025-06-19', ETH: 3180, BTC: 42400 },
-      { date: '2025-06-20', ETH: 3220, BTC: 42800 },
-      { date: '2025-06-21', ETH: 3240, BTC: 42700 },
-      { date: '2025-06-22', ETH: 3235, BTC: 42300 },
-      { date: '2025-06-23', ETH: 3245, BTC: 42567 }
+      { date: '2025-06-16', ETH: 2547.58, BTC: 106740.4 },
+      { date: '2025-06-17', ETH: 2509.59, BTC: 104559.8 },
+      { date: '2025-06-18', ETH: 2525.35, BTC: 104894.2 },
+      { date: '2025-06-19', ETH: 2521.11, BTC: 104669.6 },
+      { date: '2025-06-20', ETH: 2406.51, BTC: 103280.5 },
+      { date: '2025-06-21', ETH: 2295.26, BTC: 102113.2 },
+      { date: '2025-06-22', ETH: 2228.13, BTC: 100990.4 },
+      { date: '2025-06-23', ETH: 2410.48, BTC: 105376.9 }
     ],
     topGainers: [
       { name: 'SOL', change: 8.5 },
@@ -201,6 +169,42 @@ export function Analytics() {
         >
           {loading ? 'Refreshing...' : 'Refresh Data'}
         </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* ETH Price Box */}
+        <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center justify-between text-base">
+              <span className="flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-blue-400" />
+                ETH Price
+              </span>
+              <span className="text-2xl font-bold text-white">
+                ${marketData.tokens.find(t => t.name === 'ETH')?.price?.toLocaleString() ?? 'N/A'}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-blue-400 mt-1">Real-time via Chainlink Oracle</div>
+          </CardContent>
+        </Card>
+        {/* BTC Price Box */}
+        <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center justify-between text-base">
+              <span className="flex items-center">
+                <DollarSign className="w-5 h-5 mr-2 text-blue-400" />
+                BTC Price
+              </span>
+              <span className="text-2xl font-bold text-white">
+                ${marketData.tokens.find(t => t.name === 'BTC')?.price?.toLocaleString() ?? 'N/A'}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-blue-400 mt-1">Real-time via Chainlink Oracle</div>
+          </CardContent>
+        </Card>
       </div>
       <div className="grid lg:grid-cols-4 gap-6">
         {/* DeFi Sentiment Index */}
