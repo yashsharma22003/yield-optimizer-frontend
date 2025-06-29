@@ -1,11 +1,12 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Shield, 
-  TrendingUp, 
+import {
+  Shield,
+  TrendingUp,
   Activity,
   BarChart3,
   Bot,
@@ -14,33 +15,115 @@ import {
   Zap
 } from 'lucide-react';
 
+import { getBalanceHigh } from '../contractContext/highRiskContext';
+import { getBalanceLow } from '../contractContext/lowRiskContext';
+
+import { useAccount } from 'wagmi';
+import { set } from 'date-fns';
+
+// Define a type for our strategy object for better type-safety
+type Strategy = {
+  name: string;
+  protocol: string;
+  risk: 'Low' | 'Medium' | 'High';
+  apy: string;
+  tvl: string;
+  allocation: number;
+  performance: string;
+  status: 'Active' | 'Standby' | 'Loading...';
+  description: string;
+  riskColor: 'green' | 'yellow' | 'red';
+  statusColor: 'green' | 'yellow';
+};
+
+// Define the type for the expected API response based on the sample
+type ApiResponse = {
+  timestamp: number;
+  trend: string;
+  risk: 'high' | 'low';
+  selectedPool: {
+    address: string;
+    apy: number;
+    platform: string;
+    asset: string;
+  };
+};
+
 export function StrategyOverview() {
-  const strategies = [
+
+  const [balanceHigh, setBalanceHigh] = useState<string | null>(null);
+  const [balanceLow, setBalanceLow] = useState<string | null>(null);
+  const { address, isConnected } = useAccount();
+  const [percentage, setPercentage] = useState<{ high: string; low: string }>({ high: '0.00', low: '0.00' });
+
+  async function handleRead() {
+    if (!address) return; // Don't try to read if wallet is not connected
+    try {
+      const [balanceHighFetched, balanceLowFetched] = await Promise.all([
+        getBalanceHigh(address),
+        getBalanceLow(address)
+      ]);
+
+      setBalanceHigh(balanceHighFetched || '0.00');
+      setBalanceLow(balanceLowFetched || '0.00');
+      console.log("High Risk Balance:", balanceHighFetched);
+      console.log("Low Risk Balance:", balanceLowFetched);
+    } catch (error) {
+      console.error("Read error:", error);
+      // Don't alert here as it can be annoying on page load
+    }
+  }
+
+    async function calculatePercentage() {
+    const balanceHigh = await getBalanceHigh(address);
+    const balanceLow = await getBalanceLow(address);
+if (balanceHigh && balanceLow) {
+      const total = parseFloat(balanceHigh) + parseFloat(balanceLow);
+      const highPercentage = ((parseFloat(balanceHigh) / total) * 100).toFixed(2);
+      const lowPercentage = ((parseFloat(balanceLow) / total) * 100).toFixed(2);
+      setPercentage({ high: highPercentage, low: lowPercentage });
+      console.log("High Risk Percentage:", highPercentage);
+      console.log("Low Risk Percentage:", lowPercentage);
+      // Log the percentages for debugging
+      return { high: highPercentage, low: lowPercentage };
+
+    
+  }
+    return { high: '0.00', low: '0.00' };
+  }
+  
+  useEffect(() => {
+    handleRead();
+    calculatePercentage();
+  }, []);
+
+  // Initialize state with placeholder/default data
+  const [strategies, setStrategies] = useState<Strategy[]>([
     {
-      name: 'Aave Conservative Strategy',
-      protocol: 'Aave',
+      name: 'Conservative Strategy',
+      protocol: 'Loading...',
       risk: 'Low',
-      apy: '8.2%',
-      tvl: '$1.2M',
-      allocation: 45,
-      performance: '+5.2%',
-      status: 'Active',
-      description: 'Deposits USDC into Aave lending pools with low risk exposure',
+      apy: 'Loading...',
+      tvl: 'Loading...',
+      allocation: 0,
+      performance: 'Loading...',
+      status: 'Loading...',
+      description: 'Deposits into low-risk lending pools.',
       riskColor: 'green',
-      statusColor: 'green'
+      statusColor: 'yellow'
     },
     {
-      name: 'Morpho Aggressive Strategy',
-      protocol: 'Morpho',
+      name: 'Aggressive Strategy',
+      protocol: 'Loading...',
       risk: 'High',
-      apy: '18.7%',
-      tvl: '$850K',
-      allocation: 55,
-      performance: '+12.8%',
-      status: 'Active',
-      description: 'Leveraged lending strategy on Morpho with higher yield potential',
+      apy: 'Loading...',
+      tvl: 'Loading...',
+      allocation: 0,
+      performance: 'Loading...',
+      status: 'Loading...',
+      description: 'Leveraged lending strategy for higher yield.',
       riskColor: 'red',
-      statusColor: 'green'
+      statusColor: 'yellow'
     },
     {
       name: 'Compound Moderate Strategy',
@@ -55,7 +138,68 @@ export function StrategyOverview() {
       riskColor: 'yellow',
       statusColor: 'yellow'
     }
-  ];
+  ]);
+
+  // useEffect to fetch data when the component mounts
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        const [lowRes, highRes] = await Promise.all([
+          fetch('https://eliza-agent.onrender.com/latest/low'),
+          fetch('https://eliza-agent.onrender.com/latest/high')
+        ]);
+
+        if (!lowRes.ok || !highRes.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const lowData: ApiResponse = await lowRes.json();
+        const highData: ApiResponse = await highRes.json();
+        console.log('Low Risk Data:', lowData);
+        console.log('High Risk Data:', highData);
+        const fetchedLowStrategy: Strategy = {
+          name: `${lowData.selectedPool.platform} Conservative`,
+          protocol: lowData.selectedPool.platform,
+          risk: 'Low',
+          apy: `${lowData.selectedPool.apy.toFixed(2)}%`,
+          tvl: '$1.2M', // Placeholder - update if available in API
+          allocation: 45, // Placeholder - update if available in API
+          performance: '+5.2%', // Placeholder - update if available in API
+          status: 'Active',
+          description: `Deposits ${lowData.selectedPool.asset} into ${lowData.selectedPool.platform} with low risk exposure.`,
+          riskColor: 'green',
+          statusColor: 'green'
+        };
+
+        const fetchedHighStrategy: Strategy = {
+          name: `${highData.selectedPool.platform} Aggressive`,
+          protocol: highData.selectedPool.platform,
+          risk: 'High',
+          apy: `${highData.selectedPool.apy.toFixed(2)}%`,
+          tvl: '$850K', // Placeholder - update if available in API
+          allocation: 55, // Placeholder - update if available in API
+          performance: '+12.8%', // Placeholder - update if available in API
+          status: 'Active',
+          description: `Leveraged lending of ${highData.selectedPool.asset} on ${highData.selectedPool.platform}.`,
+          riskColor: 'red',
+          statusColor: 'green'
+        };
+
+        // Update the state with fetched data, keeping the standby strategy
+        setStrategies(currentStrategies => [
+          fetchedLowStrategy,
+          fetchedHighStrategy,
+          currentStrategies[2]
+        ]);
+
+      } catch (error) {
+        console.error("Failed to fetch strategy data:", error);
+        // Optionally, set an error state to display a message in the UI
+      }
+    };
+
+    fetchStrategies();
+  }, []); // The empty array ensures this effect runs only once on mount
 
   const aiMetrics = [
     {
@@ -74,6 +218,8 @@ export function StrategyOverview() {
       description: 'How well strategies capture market opportunities'
     }
   ];
+
+
 
   return (
     <div className="space-y-8">
@@ -113,12 +259,11 @@ export function StrategyOverview() {
                   {strategy.risk === 'Medium' && <BarChart3 className="w-5 h-5 mr-2 text-yellow-400" />}
                   {strategy.name}
                 </CardTitle>
-                <Badge 
-                  className={`${
-                    strategy.statusColor === 'green' 
-                      ? 'bg-green-500/20 text-green-300 border-green-500/30' 
+                <Badge
+                  className={`${strategy.statusColor === 'green'
+                      ? 'bg-green-500/20 text-green-300 border-green-500/30'
                       : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                  }`}
+                    }`}
                 >
                   {strategy.status}
                 </Badge>
@@ -126,7 +271,7 @@ export function StrategyOverview() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-slate-300 text-sm">{strategy.description}</p>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-slate-400 text-sm">Protocol</div>
@@ -134,14 +279,13 @@ export function StrategyOverview() {
                 </div>
                 <div>
                   <div className="text-slate-400 text-sm">Risk Level</div>
-                  <Badge 
-                    className={`${
-                      strategy.riskColor === 'green' 
-                        ? 'bg-green-500/20 text-green-300' 
+                  <Badge
+                    className={`${strategy.riskColor === 'green'
+                        ? 'bg-green-500/20 text-green-300'
                         : strategy.riskColor === 'red'
-                        ? 'bg-red-500/20 text-red-300'
-                        : 'bg-yellow-500/20 text-yellow-300'
-                    }`}
+                          ? 'bg-red-500/20 text-red-300'
+                          : 'bg-yellow-500/20 text-yellow-300'
+                      }`}
                   >
                     {strategy.risk}
                   </Badge>
@@ -159,9 +303,11 @@ export function StrategyOverview() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-slate-400 text-sm">Portfolio Allocation</span>
-                  <span className="text-white font-medium">{strategy.allocation}%</span>
+                  <span className="text-white font-medium">
+                 {strategy.risk === "High" ? percentage.high : (strategy.risk === "Low" ? percentage.low : null)}%
+                  </span>
                 </div>
-                <Progress value={strategy.allocation} className="h-2" />
+                <Progress value={Number(strategy.risk === "High" ? percentage.high : percentage.low)} className="h-2" />
               </div>
 
               <div className="pt-2 border-t border-white/10">
@@ -194,7 +340,7 @@ export function StrategyOverview() {
                 Lending rates have increased 2.3% over the past week, favoring yield strategies.
               </p>
             </div>
-            
+
             <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
               <div className="flex items-center mb-2">
                 <TrendingUp className="w-4 h-4 text-green-400 mr-2" />
@@ -224,7 +370,7 @@ export function StrategyOverview() {
                 Scheduled rebalancing in 3 hours 42 minutes based on yield analysis.
               </p>
             </div>
-            
+
             <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
               <div className="flex items-center mb-2">
                 <Bot className="w-4 h-4 text-yellow-400 mr-2" />

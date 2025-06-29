@@ -68,7 +68,7 @@ export async function getBalanceHigh(account) {
 
     try {
         const balance = await contract.balanceOf(account);
-        return ethers.formatEther(balance);
+        return ethers.formatUnits(balance, 6);
     } catch (error) {
         console.error("Error in getBalanceHigh:", error);
         return null;

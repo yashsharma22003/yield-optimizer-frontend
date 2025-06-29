@@ -2,7 +2,7 @@ import { ethers, BrowserProvider } from 'ethers';
 
 export const highRiskVault = async () => {
 
-    const contractAddress = '0xb6FF46c3c86fAfd1827Fb6b027591cCBdb54d6ec';
+    const contractAddress = '0x721bF349E453cbFB68536d3a5757A70B74D84279';
     const abi = [
         {
             "type": "constructor",
@@ -573,7 +573,7 @@ export const highRiskVault = async () => {
 }
 
 export const lowRiskVault = async () => {
-    const contractAddress = '0xD30164B46786C6c878Aa97fF43264fF6D597FBAc';
+    const contractAddress = '0xb32a6FF65dcC2099513970EA5c1eaA87fe564253';
     const abi = [
         {
             "type": "constructor",
