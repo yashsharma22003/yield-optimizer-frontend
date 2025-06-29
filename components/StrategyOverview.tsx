@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress';
 import {
   Shield,
   TrendingUp,
@@ -208,7 +208,7 @@ export function StrategyOverview() {
                   <span className="text-white font-medium">{metric.label}</span>
                   <span className="text-purple-400 font-bold">{metric.value}%</span>
                 </div>
-                <Progress value={metric.value} className="h-2" />
+                {/* <Progress value={metric.value} className="h-2" /> */}
                 <p className="text-sm text-slate-400">{metric.description}</p>
               </div>
             ))}
@@ -273,7 +273,7 @@ export function StrategyOverview() {
                     {strategy.risk === "High" ? percentage.high : percentage.low}%
                   </span>
                 </div>
-                <Progress value={Number(strategy.risk === "High" ? percentage.high : percentage.low)} className="h-2" />
+                {/* <Progress value={Number(strategy.risk === "High" ? percentage.high : percentage.low)} className="h-2" /> */}
               </div>
 
               <div className="pt-2 border-t border-white/10">
