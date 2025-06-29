@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+// import { Badge } from '@/components/ui/badge';
+// import { Progress } from '@/components/ui/progress';
 import Analytics from "../components/Analytics";
 
 import {
@@ -31,6 +31,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 
 export default function Home() {
+  console.log("page.tsx loaded");
   const [activeTab, setActiveTab] = useState('vaults'); // Start with Vaults as default
   const [dashActiveTab, setDashActiveTab] = useState(false);
   const { address, isConnected } = useAccount();
@@ -94,24 +95,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Live Market Ticker */}
-        <div className="bg-black/20 backdrop-blur-sm border-b border-white/10">
-          <div className="container mx-auto px-4 py-2">
-            <div className="flex justify-center space-x-8 text-sm">
-              <div className="flex items-center space-x-2">
-                <span className="text-slate-300">ETH:</span>
-                <span className="text-white font-mono">${marketData.eth.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-slate-300">BTC:</span>
-                <span className="text-white font-mono">${marketData.btc.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-slate-300">USDC:</span>
-                <span className="text-white font-mono">${marketData.usdc.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+      
         {/* Header */}
         <header className="border-b border-white/10 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">

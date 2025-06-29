@@ -1,11 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'export',
-  output: 'standalone',
-  eslint: {
-    ignoreDuringBuilds: true,
+  webpack(config) {
+    config.module.rules.push({
+      test: /HeartbeatWorker\.js$/,
+      type: 'javascript/esm',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+
+    return config;
   },
-  images: { unoptimized: true },
 };
 
 module.exports = nextConfig;
