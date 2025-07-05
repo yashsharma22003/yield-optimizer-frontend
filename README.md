@@ -2,5 +2,11 @@
 
 https://nagatejakachapuram.github.io/yield-optimizer-prod/
 
+## Run
+
+```bash
+npm i
+npm run dev
+```
 
 Made with Love by Yash
